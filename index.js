@@ -50,9 +50,10 @@ async function run() {
     try {
       await client.connect();
       let user = req.body;
-      const exist = await await users.findOne({ email: user.email });
+      console.log(user.email);
+      const exist = await users.findOne({ email: user.email });
       if (exist) {
-        return res.status(403);
+        return res.sendStatus(403);
       }
       const encryptedPassword = await bcrypt.hash(user.password, 10);
       user.password = encryptedPassword;
@@ -64,10 +65,10 @@ async function run() {
         const token = jwt.sign(rest, process.env.SECRET_KEY, {
           expiresIn: "1hr",
         });
-        res.send(token);
+        res.status(200).send(token);
       }
     } catch (error) {
-      res.send(error);
+      res.send({ message: error.message });
     } finally {
       await client.close();
     }
@@ -102,14 +103,15 @@ async function run() {
           text: `Click the link  to reset your Password.Link is valid for 1 hr. https://shakil-authentication.netlify.app/resetpassword/${token}`,
         });
         if (response) {
-          res.status(200);
+          res.sendStatus(200);
         }
         /* Email Bottom */
       } else {
-        res.status(404);
+        res.sendStatus(404);
       }
     } catch (error) {
-      res.send(error);
+      console.log(error);
+      res.send({ message: error.message });
     } finally {
       await client.close();
     }
@@ -130,15 +132,15 @@ async function run() {
           const token = jwt.sign(rest, process.env.SECRET_KEY, {
             expiresIn: "1hr",
           });
-          res.send(token);
+          res.status(200).send(token);
         } else {
-          res.status(401);
+          res.sendStatus(401);
         }
       } else {
-        res.status(401);
+        res.sendStatus(401);
       }
     } catch (error) {
-      res.send(error);
+      res.send({ message: error.message });
     } finally {
       await client.close();
     }
@@ -150,10 +152,10 @@ async function run() {
       await client.connect();
       const result = await users.findOne({ email: req.userinfo.email });
       if (result.email) {
-        res.status(200);
+        res.sendStatus(200);
       }
     } catch (error) {
-      res.send(error);
+      res.send({ message: error.message });
     } finally {
       await client.close();
     }
@@ -172,11 +174,11 @@ async function run() {
         const findby = { email: result.email };
         const update = await users.updateOne(findby, updated);
         if (update.modifiedCount) {
-          res.status(200);
+          res.sendStatus(200);
         }
       }
     } catch (error) {
-      res.send(error);
+      res.send({ message: error.message });
     } finally {
       await client.close();
     }
