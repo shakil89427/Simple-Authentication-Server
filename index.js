@@ -6,7 +6,6 @@ const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const cors = require("cors");
 const { MongoClient } = require("mongodb");
-const ObjectId = require("mongodb").ObjectId;
 const port = process.env.PORT || 5000;
 app.use(cors());
 app.use(express.json());
@@ -105,7 +104,7 @@ async function run() {
 
   /* Protected Route */
   app.get("/verification", guard, (req, res) => {
-    res.send(200, true);
+    res.send(req.userInfo);
   });
 }
 run().catch(console.dir);
