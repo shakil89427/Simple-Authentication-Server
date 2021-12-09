@@ -87,14 +87,14 @@ async function run() {
           expiresIn: "1hr",
         });
         /* Email Top */
-        let transport = nodemailer.createTransport({
+        const transport = nodemailer.createTransport({
           service: "gmail",
           auth: {
-            user: process.env.GMAIL,
-            pass: process.env.GPASS,
+            user: process.env.SECRET_MAIL,
+            pass: process.env.SECRET_PASS,
           },
         });
-        let response = await transport.sendMail({
+        const response = await transport.sendMail({
           from: "simpleauthentication000@gmail.com",
           to: user,
           subject: "Reset Password ✔",
