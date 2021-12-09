@@ -7,6 +7,7 @@ const jwt = require("jsonwebtoken");
 const cors = require("cors");
 const { MongoClient } = require("mongodb");
 const nodemailer = require("nodemailer");
+const { google } = require("googleapis");
 const port = process.env.PORT || 5000;
 app.use(cors());
 app.use(express.json());
@@ -74,47 +75,6 @@ async function run() {
     }
   });
 
-  /* Reset Password */
-  app.post("/resetpassword", async (req, res) => {
-    try {
-      await client.connect();
-      let user = req.body.email;
-      const exist = await users.findOne({ email: user });
-      if (exist) {
-        const { password, ...rest } = exist;
-        const token = jwt.sign(rest, process.env.SECRET_KEY, {
-          expiresIn: "1hr",
-        });
-        /* Email Top */
-        const transport = nodemailer.createTransport({
-          host: "smtp.gmail.com",
-          port: 587,
-          secure: false,
-          auth: {
-            user: process.env.SECRET_MAIL,
-            pass: process.env.SECRET_PASS,
-          },
-        });
-        const response = await transport.sendMail({
-          from: "simpleauthentication000@gmail.com",
-          to: user,
-          subject: "Reset Password ✔",
-          text: `Click the link  to reset your Password.Link is valid for 1 hr. https://shakil-authentication.netlify.app/resetpassword/${token}`,
-        });
-        if (response) {
-          res.send(response);
-        }
-        /* Email Bottom */
-      } else {
-        res.sendStatus(404);
-      }
-    } catch (error) {
-      res.send({ message: error.message });
-    } finally {
-      await client.close();
-    }
-  });
-
   /* Login */
   app.post("/login", async (req, res) => {
     try {
@@ -136,6 +96,58 @@ async function run() {
         }
       } else {
         res.sendStatus(401);
+      }
+    } catch (error) {
+      res.send({ message: error.message });
+    } finally {
+      await client.close();
+    }
+  });
+
+  /* Reset Password */
+  app.post("/resetpassword", async (req, res) => {
+    try {
+      await client.connect();
+      let user = req.body.email;
+      const exist = await users.findOne({ email: user });
+      if (exist) {
+        const { password, ...rest } = exist;
+        const token = jwt.sign(rest, process.env.SECRET_KEY, {
+          expiresIn: "1hr",
+        });
+        /* Email Top */
+        const oAuth2Client = new google.auth.OAuth2(
+          process.env.CLIENT_ID,
+          process.env.CLIENT_SECRET,
+          process.env.REDIRECT_URI
+        );
+        oAuth2Client.setCredentials({
+          refresh_token: process.env.REFRESH_TOKEN,
+        });
+        const accessToken = await oAuth2Client.getAccessToken();
+        const transport = nodemailer.createTransport({
+          service: "gmail",
+          auth: {
+            type: "OAuth2",
+            user: "simpleauthentication000@gmail.com",
+            clientId: process.env.CLIENT_ID,
+            clientSecret: process.env.CLIENT_SECRET,
+            refreshToken: process.env.REFRESH_TOKEN,
+            accessToken: accessToken,
+          },
+        });
+        const response = await transport.sendMail({
+          from: "simpleauthentication",
+          to: user,
+          subject: "Reset Password ✔",
+          text: `Click the link  to reset your Password.Link is valid for 1 hr. https://shakil-authentication.netlify.app/resetpassword/${token}`,
+        });
+        if (response) {
+          res.send(response);
+        }
+        /* Email Bottom */
+      } else {
+        res.sendStatus(404);
       }
     } catch (error) {
       res.send({ message: error.message });
