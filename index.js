@@ -51,7 +51,6 @@ async function run() {
     try {
       await client.connect();
       let user = req.body;
-      console.log(user.email);
       const exist = await users.findOne({ email: user.email });
       if (exist) {
         return res.sendStatus(403);
@@ -88,7 +87,9 @@ async function run() {
         });
         /* Email Top */
         const transport = nodemailer.createTransport({
-          service: "gmail",
+          host: "smtp.gmail.com",
+          port: 587,
+          secure: false,
           auth: {
             user: process.env.SECRET_MAIL,
             pass: process.env.SECRET_PASS,
