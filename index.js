@@ -87,31 +87,27 @@ async function run() {
           expiresIn: "1hr",
         });
         /* Email Top */
-        let testAccount = await nodemailer.createTestAccount();
-        let transporter = nodemailer.createTransport({
-          host: "smtp.ethereal.email",
-          port: 587,
-          secure: false,
+        let transport = nodemailer.createTransport({
+          service: "gmail",
           auth: {
-            user: testAccount.user,
-            pass: testAccount.pass,
+            user: process.env.GMAIL,
+            pass: process.env.GPASS,
           },
         });
-        let response = await transporter.sendMail({
+        let response = await transport.sendMail({
           from: "simpleauthentication000@gmail.com",
           to: user,
           subject: "Reset Password ✔",
           text: `Click the link  to reset your Password.Link is valid for 1 hr. https://shakil-authentication.netlify.app/resetpassword/${token}`,
         });
         if (response) {
-          res.sendStatus(200);
+          res.send(response);
         }
         /* Email Bottom */
       } else {
         res.sendStatus(404);
       }
     } catch (error) {
-      console.log(error);
       res.send({ message: error.message });
     } finally {
       await client.close();
