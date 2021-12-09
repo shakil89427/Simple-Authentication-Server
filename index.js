@@ -44,6 +44,7 @@ const guard = (req, res, next) => {
 async function run() {
   const database = client.db("authentication");
   const users = database.collection("users");
+  const tokens = database.collection("tokens");
 
   /* Signup */
   app.post("/signup", async (req, res) => {
@@ -86,18 +87,18 @@ async function run() {
           expiresIn: "1hr",
         });
         /* Email Top */
+        let testAccount = await nodemailer.createTestAccount();
         let transporter = nodemailer.createTransport({
-          host: "smtp.gmail.com",
+          host: "smtp.ethereal.email",
           port: 587,
           secure: false,
-          requireTLS: true,
           auth: {
-            user: process.env.GMAIL,
-            pass: process.env.GPASS,
+            user: testAccount.user,
+            pass: testAccount.pass,
           },
         });
         let response = await transporter.sendMail({
-          from: process.env.GMAIL,
+          from: "simpleauthentication000@gmail.com",
           to: user,
           subject: "Reset Password ✔",
           text: `Click the link  to reset your Password.Link is valid for 1 hr. https://shakil-authentication.netlify.app/resetpassword/${token}`,
